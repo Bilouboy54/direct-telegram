@@ -1,14 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
 export default async (req) => {
-  const DUREE = Number(process.env.DISPLAY_SECONDS || "10");
   const AUTORISE = String(process.env.ALLOWED_CHAT_ID || "");
-  const SECRET = String(process.env.WEBHOOK_SECRET || "");
-
-  if (SECRET) {
-    const entete = req.headers.get("x-telegram-bot-api-secret-token");
-    if (entete !== SECRET) return new Response("refusé", { status: 401 });
-  }
 
   let maj;
   try {
@@ -22,6 +15,7 @@ export default async (req) => {
 
   const chatId = String(msg.chat && msg.chat.id ? msg.chat.id : "");
 
+  // Seul toi as le droit d'ecrire
   if (AUTORISE && chatId !== AUTORISE) {
     return new Response("ignoré", { status: 200 });
   }
@@ -31,15 +25,16 @@ export default async (req) => {
 
   const store = getStore("direct");
 
+  // /clear : efface tout de suite
   if (texte === "/clear") {
-    await store.delete("live");
+    await store.setJSON("live", { texte: "", id: 0 });
     return new Response("effacé", { status: 200 });
   }
 
-  const maintenant = Date.now();
+  // Chaque message recoit un numero unique (date exacte)
   await store.setJSON("live", {
     texte: texte,
-    expire: maintenant + DUREE * 1000,
+    id: Date.now(),
   });
 
   return new Response("ok", { status: 200 });
