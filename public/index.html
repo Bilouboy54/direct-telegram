@@ -25,25 +25,22 @@
 
 <script>
   const zone = document.getElementById("texte");
-  let dernierTexte = "";
+
+  // Numero du dernier message deja vu par CE visiteur (memorise meme apres fermeture)
+  let dejaVu = 0;
+  try { dejaVu = Number(localStorage.getItem("direct_vu") || "0"); } catch (e) {}
 
   async function lireEtat() {
     try {
       const r = await fetch("/api/etat", { cache: "no-store" });
       const data = await r.json();
 
-      if (data.texte && data.reste > 0) {
-        if (data.texte !== dernierTexte) {
-          zone.textContent = data.texte;
-          zone.classList.add("visible");
-          dernierTexte = data.texte;
-        }
-        clearTimeout(zone._minuteur);
-        zone._minuteur = setTimeout(() => {
-          zone.classList.remove("visible");
-          setTimeout(() => { zone.textContent = "\u00a0"; }, 600);
-          dernierTexte = "";
-        }, data.reste * 1000);
+      // Affiche seulement si c'est un message que ce visiteur n'a JAMAIS vu
+      if (data.texte && data.id && data.id !== dejaVu) {
+        zone.textContent = data.texte;
+        zone.classList.add("visible");
+        dejaVu = data.id;
+        try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
     } catch (e) { /* serveur pas encore pret */ }
   }
