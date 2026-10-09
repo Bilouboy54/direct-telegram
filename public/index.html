@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Message en direct</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #ffffff; }
+  html, body { margin: 0; height: 100%; background: #ffffff; overflow: hidden; }
   body {
     display: flex; align-items: center; justify-content: flex-start;
     font-family: system-ui, sans-serif; color: #000000;
@@ -14,10 +14,13 @@
     font-size: 14px; text-align: left; padding: 8px 14px;
     line-height: 1.5; width: 100%;
     max-height: 100%; overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     opacity: 0; transition: opacity 0.4s;
     white-space: pre-wrap; word-break: break-word;
     color: #000000;
   }
+  #texte::-webkit-scrollbar { display: none; }
   #texte.visible { opacity: 1; }
 </style>
 </head>
