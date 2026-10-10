@@ -7,21 +7,24 @@
 <style>
   html, body { margin: 0; height: 100%; background: #ffffff; overflow: hidden; }
   body {
-    display: flex; align-items: center; justify-content: flex-start;
+    display: flex; align-items: center; justify-content: center;
     font-family: system-ui, sans-serif; color: #000000;
   }
   #texte {
-    font-size: 14px; text-align: left; padding: 8px 14px;
-    line-height: 1.5; width: 100%;
+    padding: 8px 14px;
+    line-height: 1.4;
+    width: 100%;
     max-height: 100%; overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     opacity: 0; transition: opacity 0.4s;
-    white-space: pre-wrap; word-break: break-word;
     color: #000000;
+    text-align: center;
   }
   #texte::-webkit-scrollbar { display: none; }
   #texte.visible { opacity: 1; }
+  .ligne1 { font-size: 20px; }
+  .ligne2 { font-size: 17px; white-space: pre-wrap; word-break: break-word; }
 </style>
 </head>
 <body>
@@ -41,7 +44,14 @@
 
       // Affiche seulement si c'est un message que ce visiteur n'a JAMAIS vu
       if (data.texte && data.id && data.id !== dejaVu) {
-        zone.textContent = data.texte;
+        zone.innerHTML = "";
+        const lignes = String(data.texte).split(/\r?\n/);
+        lignes.forEach(function (l, i) {
+          const d = document.createElement("div");
+          d.className = (i === 0) ? "ligne1" : "ligne2";
+          d.textContent = l;
+          zone.appendChild(d);
+        });
         zone.classList.add("visible");
         dejaVu = data.id;
         try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
