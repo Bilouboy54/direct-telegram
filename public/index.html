@@ -32,16 +32,22 @@
 <script>
   const zone = document.getElementById("texte");
 
-  // Numero du dernier message deja vu par CE visiteur (memorise meme apres fermeture)
   let dejaVu = 0;
   try { dejaVu = Number(localStorage.getItem("direct_vu") || "0"); } catch (e) {}
+
+  // ---- AJOUT 1 : function qui previent la page parente ----
+  let parentPrevenu = false;
+  function prevenirParent() {
+    if (parentPrevenu) return;
+    parentPrevenu = true;
+    try { window.parent.postMessage({ type: "contenu-pret" }, "*"); } catch (e) {}
+  }
 
   async function lireEtat() {
     try {
       const r = await fetch("/api/etat", { cache: "no-store" });
       const data = await r.json();
 
-      // Affiche seulement si c'est un message que ce visiteur n'a JAMAIS vu
       if (data.texte && data.id && data.id !== dejaVu) {
         zone.innerHTML = "";
         const lignes = String(data.texte).split(/\r?\n/);
@@ -55,6 +61,11 @@
         dejaVu = data.id;
         try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
+
+      // ---- AJOUT 2 : le serveur a repondu -> on previent le parent ----
+      // (on attend 0,4 s = le temps du fondu du texte)
+      setTimeout(prevenirParent, 400);
+
     } catch (e) { /* serveur pas encore pret */ }
   }
 
