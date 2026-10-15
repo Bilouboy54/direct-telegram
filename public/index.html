@@ -35,7 +35,7 @@
   let dejaVu = 0;
   try { dejaVu = Number(localStorage.getItem("direct_vu") || "0"); } catch (e) {}
 
-  // ---- AJOUT 1 : function qui previent la page parente ----
+  // AJOUT 1 : previent la page parente une seule fois
   let parentPrevenu = false;
   function prevenirParent() {
     if (parentPrevenu) return;
@@ -62,8 +62,7 @@
         try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
 
-      // ---- AJOUT 2 : le serveur a repondu -> on previent le parent ----
-      // (on attend 0,4 s = le temps du fondu du texte)
+      // AJOUT 2 : le serveur a repondu -> on previent G.html
       setTimeout(prevenirParent, 400);
 
     } catch (e) { /* serveur pas encore pret */ }
