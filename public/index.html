@@ -61,9 +61,8 @@
         dejaVu = data.id;
         try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
-
-      // AJOUT 2 : le serveur a repondu -> on previent G.html
-      setTimeout(prevenirParent, 400);
+   if (zone.classList.contains("visible")) {
+        setTimeout(prevenirParent, 400);
 
     } catch (e) { /* serveur pas encore pret */ }
   }
