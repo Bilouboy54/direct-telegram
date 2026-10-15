@@ -61,8 +61,9 @@
         dejaVu = data.id;
         try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
-   if (zone.classList.contains("visible")) {
+  if (zone.classList.contains("visible")) {
         setTimeout(prevenirParent, 400);
+      }
 
     } catch (e) { /* serveur pas encore pret */ }
   }
