@@ -30,12 +30,53 @@
   <div id="texte">&nbsp;</div>
 
 <script>
-  const zone = document.getElementById("texte");
+(function () {
+  "use strict";
 
-  let dejaVu = null;
+  var OPTIONS = {
+    endpoint: "/api/etat",
+    intervalle: 500,
+    fenetreRecent: 5000,
+    delaiParent: 400
+  };
 
-  // AJOUT 1 : previent la page parente une seule fois
-  let parentPrevenu = false;
+  var zone = document.getElementById("texte");
+  var arme = false;
+  var dernierId = null;
+  var dernierTexte = "";
+  var parentPrevenu = false;
+
+  function enMillisecondes(valeur) {
+    if (valeur === undefined || valeur === null || valeur === "") return null;
+    if (typeof valeur === "number") return valeur < 1e12 ? valeur * 1000 : valeur;
+    var s = String(valeur).trim();
+    if (/^\d+$/.test(s)) {
+      var n = Number(s);
+      return n < 1e12 ? n * 1000 : n;
+    }
+    var ms = Date.parse(s.replace(" ", "T"));
+    return isNaN(ms) ? null : ms;
+  }
+
+  function estRecent(data) {
+    var ms = enMillisecondes(data.date || data.timestamp || data.publie_le);
+    if (ms === null) return false;
+    var age = Date.now() - ms;
+    if (age < 0) age = 0;
+    return age <= OPTIONS.fenetreRecent;
+  }
+
+  function afficher(texte) {
+    zone.textContent = "";
+    String(texte).split(/\r?\n/).forEach(function (ligne, i) {
+      var d = document.createElement("div");
+      d.className = (i === 0) ? "ligne1" : "ligne2";
+      d.textContent = ligne;
+      zone.appendChild(d);
+    });
+    zone.classList.add("visible");
+  }
+
   function prevenirParent() {
     if (parentPrevenu) return;
     parentPrevenu = true;
@@ -44,30 +85,38 @@
 
   async function lireEtat() {
     try {
-      const r = await fetch("/api/etat", { cache: "no-store" });
-      const data = await r.json();
+      var r = await fetch(OPTIONS.endpoint, { cache: "no-store" });
+      if (!r.ok) return;
+      var data = await r.json();
+      if (!data || typeof data !== "object") return;
 
-      if (data.texte && data.id && data.id !== dejaVu) {
-        zone.innerHTML = "";
-        const lignes = String(data.texte).split(/\r?\n/);
-        lignes.forEach(function (l, i) {
-          const d = document.createElement("div");
-          d.className = (i === 0) ? "ligne1" : "ligne2";
-          d.textContent = l;
-          zone.appendChild(d);
-        });
-        zone.classList.add("visible");
-        dejaVu = data.id;
-      }
-  if (zone.classList.contains("visible")) {
-        setTimeout(prevenirParent, 400);
+      var texte = (typeof data.texte === "string") ? data.texte : "";
+      var id = (data.id === undefined || data.id === null) ? null : String(data.id);
+
+      if (!arme) {
+        arme = true;
+        dernierId = id;
+        dernierTexte = texte;
+        if (!texte || !estRecent(data)) return;
+        afficher(texte);
+        setTimeout(prevenirParent, OPTIONS.delaiParent);
+        return;
       }
 
-    } catch (e) { /* serveur pas encore pret */ }
+      var nouveau = id ? (id !== dernierId) : (texte !== dernierTexte && texte !== "");
+      if (!texte || !nouveau) return;
+
+      dernierId = id;
+      dernierTexte = texte;
+      afficher(texte);
+      setTimeout(prevenirParent, OPTIONS.delaiParent);
+
+    } catch (e) {}
   }
 
   lireEtat();
-  setInterval(lireEtat, 500);
+  setInterval(lireEtat, OPTIONS.intervalle);
+})();
 </script>
 </body>
 </html>
