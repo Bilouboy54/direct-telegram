@@ -32,8 +32,7 @@
 <script>
   const zone = document.getElementById("texte");
 
-  let dejaVu = 0;
-  try { dejaVu = Number(localStorage.getItem("direct_vu") || "0"); } catch (e) {}
+  let dejaVu = null;
 
   // AJOUT 1 : previent la page parente une seule fois
   let parentPrevenu = false;
@@ -59,7 +58,6 @@
         });
         zone.classList.add("visible");
         dejaVu = data.id;
-        try { localStorage.setItem("direct_vu", String(data.id)); } catch (e) {}
       }
   if (zone.classList.contains("visible")) {
         setTimeout(prevenirParent, 400);
